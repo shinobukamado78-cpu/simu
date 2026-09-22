@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>👑 Random Pageant Simulator</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Georgia,serif;color:#fff;background:radial-gradient(circle at 50% 0%,#5c164f 0,#22082b 42%,#090512 100%);overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.3;background-image:radial-gradient(#fff 1px,transparent 1px);background-size:70px 70px}
+.app{width:min(1100px,94%);margin:auto;padding:28px 0 50px}.brand{text-align:center}.crown{font-size:48px;filter:drop-shadow(0 0 18px #ffd86b)}h1{margin:0;font-size:clamp(30px,6vw,58px);letter-spacing:3px;background:linear-gradient(#fff8cf,#ffd56a,#fff);-webkit-background-clip:text;color:transparent}.sub{color:#e6cbe1;margin:8px 0 25px}
+.panel{background:rgba(20,8,30,.78);border:1px solid rgba(255,215,100,.35);box-shadow:0 15px 50px #0008,0 0 30px #d23bb522;border-radius:24px;padding:22px;backdrop-filter:blur(12px)}
+label{display:block;font-weight:bold;margin-bottom:8px;color:#ffe49b}textarea{width:100%;min-height:180px;resize:vertical;border-radius:14px;border:1px solid #a25a99;background:#10091a;color:white;padding:15px;font:16px Arial;outline:none}textarea:focus{border-color:#ffd76a;box-shadow:0 0 0 3px #ffd76a22}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:15px}select,button{border:0;border-radius:12px;padding:13px 18px;font-weight:bold;font-size:15px;cursor:pointer}select{background:#fff;color:#241029}button{background:linear-gradient(135deg,#f8c85b,#fff0a7);color:#30122c;box-shadow:0 6px 18px #0005}button:hover{transform:translateY(-1px)}button.secondary{background:#3a193d;color:#fff;border:1px solid #9d6097}.auto{display:flex;align-items:center;gap:8px;color:#f5ddea;margin-left:auto}.auto input{width:18px;height:18px;accent-color:#f5c95d}
+.status{text-align:center;color:#dcbfd7;margin-top:14px;font:14px Arial}.reveal{margin-top:24px;text-align:center;min-height:220px;display:flex;flex-direction:column;justify-content:center;align-items:center;border-radius:22px;background:linear-gradient(180deg,#3a123e55,#13081788);border:1px solid #e3ae5633;padding:20px}.announce{font-size:clamp(16px,3vw,24px);letter-spacing:3px;color:#ffe39b;font-weight:bold}.picked{font-size:clamp(32px,7vw,68px);font-weight:bold;margin:12px 0;background:linear-gradient(#fff,#ffd76b,#fff);-webkit-background-clip:text;color:transparent;text-shadow:0 0 25px #ffc95b44}.round{color:#dcbfd7;font:14px Arial}
+.lineup{margin-top:24px}.lineup h2{text-align:center;color:#ffe39b}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.country{padding:12px;border-radius:12px;background:#ffffff09;border:1px solid #ffffff18;text-align:center;font:14px Arial;animation:pop .35s ease;overflow-wrap:anywhere;word-break:break-word;min-width:0}.country strong{display:block;color:#ffd873;margin-bottom:3px}.podium{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.place{background:#ffffff09;border:1px solid #ffffff1c;border-radius:15px;padding:15px;text-align:center}.place b{color:#ffd873;display:block;margin-bottom:7px}
+.final-tools{margin-top:18px;border-top:1px solid #ffffff16;padding-top:18px}
+.final-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.final-head h3{margin:0;color:#ffe39b}
+.copybox{width:100%;min-height:180px;margin-top:12px;border-radius:14px;border:1px solid #ffffff18;background:#0d0713;color:#fff;padding:14px;font:15px/1.6 Arial;resize:vertical}
+.counts{display:none;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:12px}
+.count-chip{padding:10px;border-radius:12px;background:#ffffff08;border:1px solid #ffffff18;text-align:center;color:#fff;cursor:pointer}
+.count-chip b{display:block;color:#ffd873;font-size:18px}
+
+@keyframes pop{from{transform:scale(.75);opacity:0}to{transform:scale(1);opacity:1}}.flash{animation:flash .7s ease}@keyframes flash{0%{transform:scale(.8);opacity:0;filter:blur(8px)}55%{transform:scale(1.08);opacity:1}100%{transform:scale(1);filter:blur(0)}}
+@media(max-width:600px){.app{padding-top:18px}.panel{padding:15px}.controls>*{width:100%}.auto{margin-left:0;justify-content:center}.podium{grid-template-columns:repeat(2,1fr)}button{width:100%}}
+
+.modebar{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin:14px 0}.modebar button.active{background:linear-gradient(135deg,#ff5bb5,#8c55ff);color:#fff}.modebar button{min-width:130px}
+.cinematic{position:relative;overflow:hidden}.spotlight{position:absolute;top:-35%;left:50%;width:40%;height:160%;transform:translateX(-50%) rotate(3deg);background:linear-gradient(90deg,transparent,rgba(255,245,190,.12),transparent);filter:blur(10px);opacity:0;pointer-events:none}.suspense .spotlight{opacity:1;animation:sweep 1.2s ease-in-out infinite}@keyframes sweep{0%{transform:translateX(-90%) rotate(3deg)}100%{transform:translateX(90%) rotate(3deg)}}
+.nearmiss{font:700 13px Arial;color:#f7d88b;min-height:20px;margin-top:5px}.reactionbar{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:14px}.reaction{background:#2c1635;color:#fff;border:1px solid #8f548b;padding:8px 11px;border-radius:999px;font-size:18px}.floating-reaction{position:fixed;z-index:9999;pointer-events:none;font-size:30px;animation:floatReaction 1.6s ease-out forwards}@keyframes floatReaction{0%{opacity:0;transform:translateY(0) scale(.5)}15%{opacity:1}100%{opacity:0;transform:translateY(-170px) scale(1.4) rotate(15deg)}}
+.ticker{margin-top:14px;padding:10px 14px;border:1px solid #ffffff18;border-radius:12px;background:#0d0713;overflow:hidden;white-space:nowrap;color:#e8cfe5;font:13px Arial}.ticker span{display:inline-block;animation:ticker 18s linear infinite}@keyframes ticker{from{transform:translateX(100%)}to{transform:translateX(-100%)}}
+.vote-panel{margin-top:18px;padding:15px;border:1px solid #ffd76a33;border-radius:18px;background:#ffffff08}.vote-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.vote-pages{display:grid;gap:10px;margin-top:12px}.vote-card{padding:13px;border:1px solid #ffffff18;border-radius:14px;background:#0d0713}.vote-card h3{margin:0;color:#ffe39b}.vote-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.vote-actions button{padding:9px 11px}.vote-results{margin-top:10px;font:13px/1.7 Arial;color:#e8cfe5}.vote-row{display:grid;grid-template-columns:28px 1fr 70px;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid #ffffff0b}.vote-bar{height:8px;border-radius:99px;background:#ffffff10;overflow:hidden}.vote-fill{height:100%;background:linear-gradient(90deg,#f8c85b,#ff5bb5)}.vote-settings{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.vote-settings select{padding:9px 11px}.public-vote{margin-top:12px;padding:12px;border-radius:14px;border:1px solid #9d6097;background:#3a193d}.vote-badge{display:inline-block;padding:3px 7px;border-radius:99px;background:#ffd86b;color:#3b1830;font:800 11px Arial;margin-left:5px}.awardbar{margin-top:15px;text-align:center;padding:12px;border-radius:14px;background:#ffffff08;border:1px solid #ffffff18}.award-buttons{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:9px}.awardbar #awardStatus{margin-top:8px;color:#e8cfe5;font:13px Arial}.award-card{border:1px solid #ffd86b!important;box-shadow:0 0 18px #ffd86b33}.fan{margin-top:15px;text-align:center;padding:12px;border-radius:14px;background:#ffffff08;border:1px solid #ffffff18}.fan button{margin-top:8px}.fan-badge{display:inline-block;margin-left:6px;padding:3px 7px;border-radius:999px;background:#ffd86b;color:#3b1830;font:800 11px Arial;vertical-align:middle}
+.country-line{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap}.flag{font-size:22px}.confetti{position:fixed;top:-15px;width:9px;height:14px;z-index:10000;pointer-events:none;animation:confettiFall 2.8s linear forwards}@keyframes confettiFall{to{transform:translate3d(var(--dx),105vh,0) rotate(720deg);opacity:0}}.celebrate{animation:celebrate .8s ease}@keyframes celebrate{0%{transform:scale(1)}30%{transform:scale(1.08) rotate(-1deg)}60%{transform:scale(.98) rotate(1deg)}100%{transform:scale(1)}}@media(max-width:600px){.modebar button{flex:1 1 45%;min-width:0}.reactionbar{gap:5px}.reaction{padding:7px 9px}.ticker{font-size:12px}}
+
+.menu-btn{position:fixed;top:16px;left:16px;z-index:2000;width:52px;height:52px;border-radius:15px;font-size:25px;padding:0;background:linear-gradient(135deg,#f8c85b,#fff0a7);color:#30122c}
+.drawer{position:fixed;inset:0;z-index:1999;display:none;background:#08040dcc}.drawer.open{display:block}.drawer-panel{width:min(390px,88vw);height:100%;overflow:auto;background:linear-gradient(180deg,#2a0d31,#0d0614);border-right:1px solid #ffd76a55;padding:80px 20px 30px;box-shadow:20px 0 50px #0009}.drawer h2{color:#ffe39b}.drawer-section{margin:16px 0;padding:14px;border:1px solid #ffffff18;border-radius:16px;background:#ffffff08}.pageant-item{padding:12px;border-radius:12px;background:#ffffff08;margin-top:8px}.edition-item{padding:8px 10px;margin-top:6px;border-left:2px solid #ffd76a55;color:#e8cfe5;font:14px Arial;cursor:pointer}.edition-item:hover{background:#ffffff10}.drawer small{color:#bfa6bc;font:12px Arial}.pageant-name-input{width:100%;padding:11px;border-radius:10px;border:1px solid #ffffff20;background:#10091a;color:#fff;margin:7px 0;font:15px Arial}.savebar{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.savebar button{flex:1}.saved-note{font:13px Arial;color:#e8cfe5;margin-top:8px}.drawer-close{position:absolute;top:16px;right:16px;background:#3a193d;color:#fff;border:1px solid #9d6097}
+.group-panel{margin-top:18px}.group-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.group-list{display:grid;gap:10px;margin-top:12px}.group-card{padding:14px;border:1px solid #ffffff18;border-radius:16px;background:#ffffff08}.group-card h3{margin:0 0 8px;color:#ffe39b}.group-countries{min-height:60px;padding:9px;border-radius:10px;background:#0d0713;border:1px solid #ffffff12;color:#e8cfe5;font:13px/1.7 Arial;white-space:pre-wrap}.group-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.group-actions button{padding:9px 11px}.mergebar{margin-top:12px;padding:13px;border-radius:14px;border:1px solid #ffd76a33;background:#ffd76a0b}.group-status{font:13px Arial;color:#e8cfe5;margin-top:8px}.hof-table{width:100%;border-collapse:collapse;font:13px Arial;margin-top:10px}.hof-table th,.hof-table td{padding:8px;border-bottom:1px solid #ffffff12;text-align:left}.hof-table th{color:#ffd873}
+@media(max-width:600px){.menu-btn{width:46px;height:46px}.drawer-panel{padding-top:75px}.group-actions button{width:100%}}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+<button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
+<div class="drawer" id="drawer">
+  <div class="drawer-panel">
+    <button class="drawer-close" id="drawerClose">✕</button>
+    <h2>👑 Pageant Manager</h2>
+    <div class="drawer-section">
+      <strong>MY PAGEANTS</strong>
+      <input class="pageant-name-input" id="newPageantName" placeholder="Pageant name, e.g. Miss Asia">
+      <button id="createPageant">➕ Create New Pageant Set</button>
+      <div id="pageantList"></div>
+    </div>
+    <div class="drawer-section">
+      <strong>💾 EDITION SAVE SET</strong>
+      <div class="saved-note">Choose which pageant set receives the completed edition.</div>
+      <select class="pageant-name-input" id="savePageantSelect"><option value="">Choose pageant set…</option></select>
+      <button class="secondary" id="saveNewSetBtn">➕ Create New Set for This Edition</button>
+      <div class="saved-note" id="draftStatus">Draft progress is saved automatically in this browser.</div>
+    </div>
+    <div class="drawer-section">
+      <strong>👤 ACCOUNT & CLOUD SYNC</strong>
+      <div class="saved-note">Sign in with Email/Password or Google. Your pageant sets, saved editions, Hall of Fame, groups, and unfinished draft can sync across devices through Firebase.</div>
+      <div class="controls" style="margin-top:10px">
+        <button class="secondary" id="emailAccountBtn">📧 Sign Up / Log In</button>
+        
+        <button class="secondary" id="logoutAccountBtn" style="display:none">🚪 Log Out</button>
+        <button class="secondary" id="firebaseConfigBtn">⚙️ Configure Firebase</button>
+      </div>
+      <div id="accountStatus" class="saved-note">☁️ Firebase is not configured yet.</div>
+      <div class="saved-note">📧 Email/password is used for cross-device sign-in. After configuring Firebase, sign in with the same account on any device to restore your cloud-saved progress.</div>
+    </div>
+    <div class="drawer-section">
+      <strong>🏆 HALL OF FAME</strong>
+      <div id="hallOfFame">Create and save a completed edition to see its history here.</div>
+    </div>
+  </div>
+</div>
+<div class="app">
+<header class="brand"><div class="crown">👑</div><h1>RANDOM PAGEANT SIMULATOR</h1><p class="sub">No scores. No judging. Just the drama of the draw.</p></header>
+<section class="panel">
+<label for="countries">Enter countries — one per line, comma-separated, or paste a space-separated country list</label>
+<textarea id="countries" placeholder="Philippines
+Brazil
+Thailand
+Colombia
+South Africa
+Mexico
+Venezuela
+USA
+Japan
+India
+..."></textarea>
+<div class="controls">
+<select id="target">
+<option value="40">Top 40</option><option value="30">Top 30</option><option value="25">Top 25</option><option value="20">Top 20</option><option value="15">Top 15</option><option value="12">Top 12</option><option value="10">Top 10</option><option value="6">Top 6</option><option value="5">Top 5</option><option value="3">Top 3</option><option value="ru5">5th Runner-Up</option><option value="ru4">4th Runner-Up</option><option value="ru3">3rd Runner-Up</option><option value="ru2">2nd Runner-Up</option><option value="ru1">1st Runner-Up</option><option value="winner">Winner</option>
+</select>
+<button id="pick">✨ Pick Next</button><button class="secondary" id="reset">↻ New Simulation</button>
+<label class="auto"><input type="checkbox" id="auto"> Auto Pick</label>
+</div>
+<div class="modebar"><button class="active" id="normalMode">🎬 Normal Mode</button><button id="gaspMode">😱 Gasp Mode</button></div><div class="status" id="status">Enter at least 1 country to begin.</div><div class="status" style="color:#ffe39b">💎 Rule: Top X qualifiers advance. In the final placements, anyone in the current Top 5 may be selected for 4th RU; that country is removed, then anyone among the remaining may get 3rd RU, then 2nd, 1st, and Winner. No placed country can advance again.</div>
+<div class="reveal cinematic" id="reveal"><div class="spotlight"></div><div class="announce">THE NEXT SEMIFINALIST IS…</div><div class="picked" id="picked">—</div><div class="round" id="round">Your random reveal awaits</div><div class="nearmiss" id="nearMiss"></div></div>
+<div class="reactionbar"><button class="reaction" data-reaction="😱">Gasp 😱</button><button class="reaction" data-reaction="👑">Screaming 👑</button><button class="reaction" data-reaction="🚨">Rigged! 🚨</button><button class="reaction" data-reaction="✨">Obsessed ✨</button></div>
+<div class="ticker"><span id="tickerText">🎙️ Welcome to the pageant! The next reveal is coming up...</span></div>
+<div class="fan">⭐ <strong>Fan Favorite</strong><div><span id="fanFavorite">No Fan Favorite selected</span></div><button class="secondary" id="fanBtn">⭐ Select Fan Favorite</button></div>
+<div class="awardbar"><strong>🏆 Special Additions</strong><div class="award-buttons"><button class="secondary" id="fanVoteBtn">📣 Add Fan Vote</button><button class="secondary" id="specialAwardBtn">🎖️ Add Special Award</button></div><div id="awardStatus">No special award added yet.</div></div>
+<div class="vote-panel">
+  <div class="vote-head"><strong>📣 FAN VOTING</strong><button class="secondary" id="createVotingPageBtn">➕ Create Voting Page</button></div>
+  <div class="saved-note">Create multiple voting pages, rename them, update their random results, choose all contestants or a group, and optionally guarantee the voting winner into a selected cut.</div>
+  <div class="vote-pages" id="votePages"></div>
+</div>
+<div class="savebar"><button class="secondary" id="saveEditionBtn" disabled>💾 Save Completed Edition</button><span class="saved-note" id="saveStatus">Complete the Winner stage before saving an edition.</span></div>
+<div class="panel group-panel">
+  <div class="group-head"><h2 style="margin:0;color:#ffe39b">🌎 Group / Continental Cut</h2><button class="secondary" id="addGroupBtn">➕ Add Group</button></div>
+  <div class="group-status" id="groupStatus">Create groups and assign delegates manually. Groups can be changed during the simulation.</div>
+  <div class="group-list" id="groupList"></div>
+  <div class="mergebar"><strong>🔗 Merge Groups</strong><div class="group-status">After any group/continental cuts, merge the current survivors from all groups into one field and continue with the normal Top X cuts. You decide when to stop using group cuts.</div><button class="secondary" id="mergeGroupsBtn" style="margin-top:9px">🔗 Merge All Current Group Survivors</button></div>
+</div>
+<div class="lineup"><h2>Final Lineup</h2><div class="grid" id="lineup"></div></div>
+<div class="final-tools">
+  <div class="final-head">
+    <h3>📋 Final List — Copy Ready</h3>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="secondary" id="copyFinal">📋 Copy Final List</button>
+      <button class="secondary" id="toggleCounts">🔢 Show Counts</button>
+    </div>
+  </div>
+  <textarea class="copybox" id="finalText" readonly placeholder="Your final list will appear here."></textarea>
+  <div class="counts" id="counts"></div>
+</div>
+</section>
+</div>
+<script>const $=id=>document.getElementById(id);
+let pool=[], results=[], targetCount=40, timer=null, finished=false, stage=0, activeField=[];
+let revealMode='normal',fanFavorite='',audioCtx=null,specialAwards=[];
+let groups={}, groupHistory={}, completedEdition=false;
+let fanVotingPages=[];
+let currentPageant=localStorage.getItem('rp_current_pageant')||'';
+let pageants=JSON.parse(localStorage.getItem('rp_pageants')||'{}');
+let __editionHistory=[], __placements=[];
+
+// Firebase cloud account state. The Firebase config is intentionally stored only on this device;
+// it is not part of pageant data. Paste your project's Web App config through Configure Firebase.
+let firebaseConfig=null, firebaseApp=null, firebaseAuth=null, firebaseDb=null, cloudSyncTimer=null, cloudSyncBusy=false;
+function localSnapshot(){
+  return {
+    pageants: JSON.parse(localStorage.getItem('rp_pageants')||'{}'),
+    currentPageant: localStorage.getItem('rp_current_pageant')||currentPageant||'',
+    draft: localStorage.getItem(draftKey||'rp_active_draft_v6'),
+    groups: JSON.parse(localStorage.getItem('rp_groups')||JSON.stringify(groups||{})),
+    groupHistory: JSON.parse(localStorage.getItem('rp_group_history')||JSON.stringify(groupHistory||{})),
+    fanVotingPages: JSON.parse(localStorage.getItem('rp_fan_voting_pages')||JSON.stringify(fanVotingPages||[])),
+    updatedAt:new Date().toISOString()
+  };
+}
+function applyCloudSnapshot(d){
+  if(!d)return;
+  pageants=d.pageants||{};
+  currentPageant=d.currentPageant||'';
+  localStorage.setItem('rp_pageants',JSON.stringify(pageants));
+  localStorage.setItem('rp_current_pageant',currentPageant);
+  if(d.draft)localStorage.setItem(draftKey,d.draft); else localStorage.removeItem(draftKey);
+  groups=d.groups||{}; groupHistory=d.groupHistory||{}; fanVotingPages=d.fanVotingPages||[]; localStorage.setItem('rp_fan_voting_pages',JSON.stringify(fanVotingPages));
+  localStorage.setItem('rp_groups',JSON.stringify(groups));
+  localStorage.setItem('rp_group_history',JSON.stringify(groupHistory));
+  updateSaveSetOptions(); renderPageants(); renderHOF(); renderGroups();
+}
+function setAccountStatus(t){const el=$('accountStatus');if(el)el.textContent=t}
+function initFirebase(){
+  if(firebaseAuth&&firebaseDb)return true;
+  try{
+    const raw=localStorage.getItem('rp_firebase_config');
+    if(!raw){setAccountStatus('☁️ Firebase is not configured yet. Tap ⚙️ Configure Firebase.');return false}
+    firebaseConfig=JSON.parse(raw);
+    if(!firebaseConfig.apiKey||!firebaseConfig.authDomain||!firebaseConfig.projectId){throw new Error('Missing apiKey, authDomain, or projectId.')}
+    firebaseApp=firebase.apps.length?firebase.apps[0]:firebase.initializeApp(firebaseConfig);
+    firebaseAuth=firebase.auth(); firebaseDb=firebase.firestore();
+    firebaseAuth.onAuthStateChanged(async user=>{
+      if(user){
+        $('logoutAccountBtn').style.display='inline-block';
+        setAccountStatus('☁️ Signed in: '+(user.email||user.displayName||'Google account')+' — syncing…');
+        await pullCloud();
+      }else{
+        $('logoutAccountBtn').style.display='none';
+        setAccountStatus('☁️ Firebase connected — not signed in.');
+      }
+    });
+    setAccountStatus('☁️ Firebase connected.');
+    return true;
+  }catch(e){setAccountStatus('⚠️ Firebase config error: '+e.message);return false}
+}
+async function configureFirebase(){
+  const current=localStorage.getItem('rp_firebase_config')||'';
+  const example='{\n  "apiKey": "YOUR_API_KEY",\n  "authDomain": "YOUR_PROJECT.firebaseapp.com",\n  "projectId": "YOUR_PROJECT_ID",\n  "storageBucket": "YOUR_PROJECT.firebasestorage.app",\n  "messagingSenderId": "YOUR_SENDER_ID",\n  "appId": "YOUR_APP_ID"\n}';
+  const raw=prompt('Paste the Firebase Web App configuration JSON from Firebase Console → Project settings → Your apps → Web app.\n\nExample:\n'+example,current);
+  if(raw===null)return;
+  try{const cfg=JSON.parse(raw);if(!cfg.apiKey||!cfg.authDomain||!cfg.projectId)throw new Error('The config needs apiKey, authDomain, and projectId.');localStorage.setItem('rp_firebase_config',JSON.stringify(cfg));firebaseConfig=cfg;setAccountStatus('⚙️ Firebase config saved. Initializing…');if(firebaseApp){location.reload()}else{initFirebase()}}catch(e){alert('⚠️ Invalid Firebase config.\n'+e.message)}}
+async function emailAccount(){
+  if(!initFirebase())return;
+  const email=prompt('Email address:'); if(!email)return;
+  const password=prompt('Password (at least 6 characters):'); if(!password)return;
+  const action=confirm('Press OK to CREATE a new account. Press Cancel to LOG IN to an existing account.');
+  try{
+    if(action){await firebaseAuth.createUserWithEmailAndPassword(email.trim(),password);alert('✅ Account created and signed in. Your data will now sync across devices.');}
+    else{await firebaseAuth.signInWithEmailAndPassword(email.trim(),password);alert('✅ Signed in. Your cloud data is being restored.');}
+  }catch(e){alert('⚠️ '+e.message)}
+}
+async function logoutAccount(){try{if(firebaseAuth)await firebaseAuth.signOut()}catch(e){alert('⚠️ '+e.message)}}
+async function pullCloud(){
+  if(!firebaseAuth||!firebaseAuth.currentUser||!firebaseDb)return;
+  try{
+    const ref=firebaseDb.collection('users').doc(firebaseAuth.currentUser.uid);
+    const snap=await ref.get();
+    if(snap.exists&&snap.data().app){
+      applyCloudSnapshot(snap.data().app);
+      const restored=restoreDraft(false);
+      if(!restored){setup(true);renderGroups();}
+      setAccountStatus('☁️ Synced: '+(firebaseAuth.currentUser.email||firebaseAuth.currentUser.displayName||'Google account'));
+    }else{
+      await syncNow(true);
+      setAccountStatus('☁️ Signed in — local data uploaded to the cloud.');
+    }
+  }catch(e){setAccountStatus('⚠️ Cloud restore failed: '+e.message)}
+}
+function scheduleCloudSync(){
+  if(!firebaseAuth||!firebaseAuth.currentUser||!firebaseDb)return;
+  clearTimeout(cloudSyncTimer); cloudSyncTimer=setTimeout(()=>syncNow(false),900);
+}
+async function syncNow(force){
+  if(cloudSyncBusy||!firebaseAuth||!firebaseAuth.currentUser||!firebaseDb)return;
+  cloudSyncBusy=true;
+  try{
+    const app=localSnapshot();
+    await firebaseDb.collection('users').doc(firebaseAuth.currentUser.uid).set({app,updatedAt:new Date().toISOString()},{merge:true});
+    setAccountStatus('☁️ Saved to cloud — '+new Date().toLocaleTimeString());
+  }catch(e){setAccountStatus('⚠️ Cloud save failed: '+e.message)}
+  finally{cloudSyncBusy=false}
+}
+
+
+const flagMap={"Philippines":"🇵🇭","Brazil":"🇧🇷","Thailand":"🇹🇭","Colombia":"🇨🇴","Mexico":"🇲🇽","Venezuela":"🇻🇪","South Africa":"🇿🇦","India":"🇮🇳","Indonesia":"🇮🇩","Vietnam":"🇻🇳","Malaysia":"🇲🇾","Singapore":"🇸🇬","Japan":"🇯🇵","South Korea":"🇰🇷","Spain":"🇪🇸","France":"🇫🇷","Italy":"🇮🇹","United States":"🇺🇸","Canada":"🇨🇦","Australia":"🇦🇺","New Zealand":"🇳🇿","United Kingdom":"🇬🇧","Puerto Rico":"🇵🇷","Dominican Republic":"🇩🇴","Jamaica":"🇯🇲","Nigeria":"🇳🇬","Ghana":"🇬🇭","Kenya":"🇰🇪","Botswana":"🇧🇼","Namibia":"🇳🇦","Ecuador":"🇪🇨","Peru":"🇵🇪","Chile":"🇨🇱","Argentina":"🇦🇷","Bolivia":"🇧🇴","Panama":"🇵🇦","Costa Rica":"🇨🇷","Guatemala":"🇬🇹","Honduras":"🇭🇳","El Salvador":"🇸🇻","China":"🇨🇳","Laos":"🇱🇦","Egypt":"🇪🇬","Ukraine":"🇺🇦","Paraguay":"🇵🇾","Malta":"🇲🇹","Germany":"🇩🇪","Netherlands":"🇳🇱","Sweden":"🇸🇪","Switzerland":"🇨🇭","Turkey":"🇹🇷","Türkiye":"🇹🇷","Poland":"🇵🇱","Portugal":"🇵🇹","Greece":"🇬🇷","Ireland":"🇮🇪","Iceland":"🇮🇸","Denmark":"🇩🇰","Norway":"🇳🇴","Finland":"🇫🇮","Belgium":"🇧🇪","Austria":"🇦🇹","Czech Republic":"🇨🇿","Slovakia":"🇸🇰","Hungary":"🇭🇺","Romania":"🇷🇴","Bulgaria":"🇧🇬","Croatia":"🇭🇷","Serbia":"🇷🇸","Albania":"🇦🇱","Kosovo":"🇽🇰","Georgia":"🇬🇪","Armenia":"🇦🇲","Azerbaijan":"🇦🇿","Kazakhstan":"🇰🇿","Uzbekistan":"🇺🇿","Kyrgyzstan":"🇰🇬","Nepal":"🇳🇵","Bhutan":"🇧🇹","Bangladesh":"🇧🇩","Sri Lanka":"🇱🇰","Pakistan":"🇵🇰","Myanmar":"🇲🇲","Cambodia":"🇰🇭","Brunei":"🇧🇳","Mongolia":"🇲🇳","Taiwan":"🇹🇼","Hong Kong":"🇭🇰","Macau":"🇲🇴","Qatar":"🇶🇦","Saudi Arabia":"🇸🇦","United Arab Emirates":"🇦🇪","Israel":"🇮🇱","Jordan":"🇯🇴","Lebanon":"🇱🇧","Kuwait":"🇰🇼","Oman":"🇴🇲","Iran":"🇮🇷","Iraq":"🇮🇶","Morocco":"🇲🇦","Tunisia":"🇹🇳","Algeria":"🇩🇿","Ethiopia":"🇪🇹","Tanzania":"🇹🇿","Rwanda":"🇷🇼","Zambia":"🇿🇲","Zimbabwe":"🇿🇼"};
+
+const COUNTRY_NAMES = [
+"Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina",
+"Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados",
+"Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana",
+"Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cabo Verde","Cambodia","Cameroon",
+"Canada","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo",
+"Costa Rica","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica",
+"Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia",
+"Eswatini","Ethiopia","Fiji","Finland","France","Gabon","Gambia","Georgia","Germany","Ghana",
+"Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary",
+"Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan",
+"Jordan","Kazakhstan","Kenya","Kiribati","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon",
+"Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi",
+"Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico",
+"Micronesia","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar",
+"Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria",
+"North Korea","North Macedonia","Norway","Oman","Pakistan","Palau","Palestine","Panama",
+"Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania",
+"Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines",
+"Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles",
+"Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa",
+"South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland",
+"Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor-Leste","Togo","Tonga",
+"Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine",
+"United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu",
+"Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe","Kosovo","Puerto Rico",
+"Bermuda","Cayman Islands","Aruba","Curacao","Guam","Hong Kong","Macau"
+];
+function flagFor(c){return flagMap[c]||'🏳️'}
+function getAudio(){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume()}catch(e){}}
+function tone(f,d,t='sine',v=.04,delay=0){try{getAudio();let o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=t;o.frequency.value=f;g.gain.setValueAtTime(.001,audioCtx.currentTime+delay);g.gain.exponentialRampToValueAtTime(v,audioCtx.currentTime+delay+.02);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+delay+d);o.connect(g);g.connect(audioCtx.destination);o.start(audioCtx.currentTime+delay);o.stop(audioCtx.currentTime+delay+d+.03)}catch(e){}}
+function drumroll(){for(let i=0;i<14;i++)tone(90+Math.random()*30,.06,'triangle',.045,i*.065)}
+function revealSound(){tone(440,.15);tone(660,.18,'sine',.05,.12);tone(880,.3,'sine',.045,.24)}
+function victorySound(){[523,659,784,1047].forEach((f,i)=>tone(f,.4,'sine',.07,i*.12))}
+function setMode(m){revealMode=m;$('normalMode').classList.toggle('active',m==='normal');$('gaspMode').classList.toggle('active',m==='gasp');$('status').textContent=m==='gasp'?'😱 Gasp Mode: suspense effects enabled.':'🎬 Normal Mode: standard reveal enabled.'}
+function floatReaction(e){let x=document.createElement('div');x.className='floating-reaction';x.textContent=e;x.style.left=(10+Math.random()*80)+'vw';x.style.top=(55+Math.random()*25)+'vh';document.body.appendChild(x);setTimeout(()=>x.remove(),1700)}
+function confetti(){for(let i=0;i<80;i++){let c=document.createElement('i');c.className='confetti';c.style.left=Math.random()*100+'vw';c.style.setProperty('--dx',(Math.random()*360-180)+'px');c.style.animationDelay=Math.random()*.5+'s';document.body.appendChild(c);setTimeout(()=>c.remove(),3200)}}
+function commentary(c){let a=[`🎙️ The atmosphere is electric as ${c} takes the spotlight!`,`🎙️ Pageant fans are watching closely — ${c} has just been revealed.`,`🎙️ What a moment! ${c} is moving forward!`,`🎙️ The crowd reacts as ${c} joins the lineup!`];$('tickerText').textContent=a[Math.floor(Math.random()*a.length)]}
+function parseCountries(){const raw=$('countries').value.trim();if(!raw)return[];const parts=raw.split(/[\n,;|]+/).map(x=>x.trim()).filter(Boolean);if(parts.length>1)return[...new Set(parts)];const normalized=raw.replace(/\s+/g,' ').trim();const sorted=[...COUNTRY_NAMES].sort((a,b)=>b.length-a.length);const escaped=sorted.map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));const re=new RegExp('(^|\s)('+escaped.join('|')+')(?:\s|$)','gi');const found=[];let m;while((m=re.exec(normalized))!==null)found.push(m[2]);if(found.length>=2)return[...new Set(found.map(x=>COUNTRY_NAMES.find(c=>c.toLowerCase()===x.toLowerCase())||x))];return[normalized]}
+function getTarget(){const v=$('target').value;if(v==='winner')return 1;return Number(v)}
+function isPlacement(v){return ['ru5','ru4','ru3','ru2','ru1','winner'].includes(v)}
+function placementName(v){return {ru5:'5TH RUNNER-UP',ru4:'4TH RUNNER-UP',ru3:'3RD RUNNER-UP',ru2:'2ND RUNNER-UP',ru1:'1ST RUNNER-UP',winner:'WINNER'}[v]||''}
+function setup(newSimulation=false){clearTimeout(timer);timer=null;results=[];finished=false;completedEdition=false;__editionHistory=[];__placements=[];$('saveEditionBtn').disabled=true;$('saveStatus').textContent='Complete the Winner stage before saving an edition.';const entered=parseCountries();if(newSimulation||activeField.length===0){fanFavorite='';specialAwards=[];groups={};groupHistory={};$('awardStatus').textContent='No special award added yet.';$('fanFavorite').textContent='No Fan Favorite selected';activeField=[...entered];stage=0}pool=[...activeField];targetCount=Math.min(getTarget(),pool.length||getTarget());render();renderGroups();$('picked').textContent='—';$('reveal').querySelector('.announce').textContent='THE NEXT SEMIFINALIST IS…';$('round').textContent=pool.length?`${pool.length} countries in the current field`:'Your random reveal awaits';$('status').textContent=pool.length?`Current field: ${pool.length} countries`:'Enter at least 1 country to begin'}
+function labelFor(n){if(n==='winner')return'WINNER';if(n==='ru5')return'5TH RUNNER-UP';if(n==='ru4')return'4TH RUNNER-UP';if(n==='ru3')return'3RD RUNNER-UP';if(n==='ru2')return'2ND RUNNER-UP';if(n==='ru1')return'1ST RUNNER-UP';return'TOP '+n}
+function resetStage(){results=[];finished=false;pool=[...activeField];targetCount=isPlacement($('target').value)?1:Math.min(getTarget(),pool.length);$('picked').textContent='—';$('reveal').querySelector('.announce').textContent=isPlacement($('target').value)?`🎖️ ${placementName($('target').value)} IS…`:'THE NEXT SEMIFINALIST IS…';$('round').textContent=`Next stage: ${pool.length} eligible contestants`;render()}
+function pickNext(){if(revealMode==='gasp'){$('reveal').classList.add('suspense');$('nearMiss').textContent='👀 So close...';drumroll()}if(!pool.length){$('status').textContent='No eligible countries remain.';return}const selectedTarget=$('target').value;if(isPlacement(selectedTarget)){if(results.length>=1)return;const country=pool.splice(Math.floor(Math.random()*pool.length),1)[0];$('reveal').classList.remove('suspense');$('nearMiss').textContent='';revealSound();commentary(country);handleRevealReaction(country);results=[country];$('picked').classList.remove('flash');void $('picked').offsetWidth;$('picked').classList.add('flash');$('picked').textContent=country;$('reveal').querySelector('.announce').textContent=`🎖️ ${placementName(selectedTarget)} IS…`;$('round').textContent=`${placementName(selectedTarget)} • ${pool.length} countries remain eligible`;$('status').textContent=`${pool.length} eligible contestants remain. The selected country cannot advance again.`;render();finish();if($('auto').checked&&selectedTarget!=='winner'&&pool.length){const nextMap={ru5:'ru4',ru4:'ru3',ru3:'ru2',ru2:'ru1',ru1:'winner'};const next=nextMap[selectedTarget];if(next)timer=setTimeout(()=>{$('target').value=next;resetStage();pickNext()},1200)}return}if(finished)resetStage();if(results.length>=targetCount){finish();return}let country; if(results.length===0){const guaranteed=fanVoteWinnerFor(targetCount).filter(c=>pool.includes(c)); if(guaranteed.length){country=guaranteed[0]; pool.splice(pool.indexOf(country),1);} } if(!country){country=pool.splice(Math.floor(Math.random()*pool.length),1)[0];} results.push(country);const count=results.length,isFinal=count===targetCount;$('reveal').classList.remove('suspense');$('nearMiss').textContent='';$('picked').classList.remove('flash');void $('picked').offsetWidth;$('picked').classList.add('flash');$('picked').textContent=country;revealSound();commentary(country);handleRevealReaction(country,isFinal);$('reveal').querySelector('.announce').textContent='THE NEXT SEMIFINALIST IS…';$('round').textContent=`Reveal ${count} of ${targetCount} • ${isFinal?'Final lineup complete!':labelFor($('target').value)}`;$('status').textContent=`${pool.length} countries remain • No repeats`;render();if(isFinal)finish();else if($('auto').checked)timer=setTimeout(pickNext,1100)}
+function finish(){finished=true;clearTimeout(timer);timer=null;const selectedTarget=$('target').value;if(isPlacement(selectedTarget)){const selected=results[results.length-1];activeField=pool.filter(c=>c!==selected);const label=selectedTarget==='winner'?'Winner':placementName(selectedTarget).replace('5TH','5th').replace('4TH','4th').replace('3RD','3rd').replace('2ND','2nd').replace('1ST','1st');__placements.push({label,country:selected});$('reveal').querySelector('.announce').textContent=selectedTarget==='winner'?'👑 THE WINNER IS…':`🎖️ ${placementName(selectedTarget)} IS…`;$('round').textContent=activeField.length?`${activeField.length} contestants remain eligible.`:'Final placement complete.';$('status').textContent=activeField.length?`Only the remaining Top ${activeField.length} may advance to the next placement.`:'👑 Final placement complete.';render();if(selectedTarget==='winner'){completedEdition=true;$('saveEditionBtn').disabled=false;$('saveStatus').textContent='🎉 Edition complete! You can now save this edition.';victorySound();$('reveal').classList.add('celebrate');confetti()}return}activeField=[...results];stage++;__editionHistory.push({label:'Top '+targetCount,countries:[...results]});if(targetCount===1){completedEdition=true;$('saveEditionBtn').disabled=false;$('saveStatus').textContent='🎉 Edition complete! You can now save this edition.';victorySound();$('reveal').classList.add('celebrate');confetti()}$('reveal').querySelector('.announce').textContent=targetCount===1?'👑 THE WINNER IS…':'🎉 FINAL LINEUP COMPLETE!';$('round').textContent=`${results.length} contestants advanced. Change the target and press Pick Next to continue with ONLY these contestants.`;$('status').textContent=`${results.length} contestants advanced to the next stage.`;render()}
+function render(){const placementTitles={ru5:'5th Runner-Up',ru4:'4th Runner-Up',ru3:'3rd Runner-Up',ru2:'2nd Runner-Up',ru1:'1st Runner-Up',winner:'Winner'};const awardHtml=specialAwards.map(a=>`<div class="country award-card"><strong>${escapeHtml(a.title)}</strong><div class="country-line"><span class="flag">${flagFor(a.country)}</span><span>${escapeHtml(a.country)}</span><span class="fan-badge">🏆 SPECIAL</span></div></div>`).join('');if(isPlacement($('target').value))$('lineup').innerHTML=awardHtml+results.map(c=>`<div class="country"><strong>${placementTitles[$('target').value]}</strong><div class="country-line"><span class="flag">${flagFor(c)}</span><span>${escapeHtml(c)}</span>${fanFavorite===c?'<span class="fan-badge">⭐ FAN FAVORITE</span>':''}</div></div>`).join('');else $('lineup').innerHTML=awardHtml+results.map((c,i)=>`<div class="country"><strong>${i+1}</strong><div class="country-line"><span class="flag">${flagFor(c)}</span><span>${escapeHtml(c)}</span>${fanFavorite===c?'<span class="fan-badge">⭐ FAN FAVORITE</span>':''}</div></div>`).join('');updateFinalTools()}
+function buildFinalList(){const v=$('target').value;if(!isPlacement(v))$('finalText').value=results.join('\n');else $('finalText').value=results.map(c=>`${v==='winner'?'Winner':placementName(v).replace('5TH','5th').replace('4TH','4th').replace('3RD','3rd').replace('2ND','2nd').replace('1ST','1st')}: ${c}`).join('\n')}
+function buildCounts(){const names=[['Top 40',40],['Top 30',30],['Top 25',25],['Top 20',20],['Top 15',15],['Top 12',12],['Top 10',10],['Top 6',6],['Top 5',5],['Top 3',3]];$('counts').innerHTML=names.map(([name,n])=>`<div class="count-chip" data-count="${n}"><b>${Math.min(n,activeField.length)}</b>${name}</div>`).join('')}
+function updateFinalTools(){buildFinalList();buildCounts()}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function handleRevealReaction(country,final=false){const reactions=final?['👑','🎉','😱','✨']:(revealMode==='gasp'?['😱','🚨','👑','✨']:['😱','👑','✨','🔥','👏']);const reaction=reactions[Math.floor(Math.random()*reactions.length)];floatReaction(reaction);tone(final?740:520,final?.16:.09);const labels={'😱':'GASP!','👑':'SCREAMING!','🚨':'RIGGED!','✨':'OBSESSED!','🔥':'ICONIC!','👏':'APPLAUSE!','🎉':'CELEBRATION!'};$('tickerText').textContent=`${reaction} ${labels[reaction]||'REACTION!'} — ${country} has been announced!`}
+function addSpecialAward(title){const candidates=[...new Set([...activeField,...parseCountries()])].filter(Boolean);if(!candidates.length){$('awardStatus').textContent='Enter countries first.';return}const available=candidates.filter(c=>!specialAwards.some(a=>a.country===c));if(!available.length){$('awardStatus').textContent='All available contestants already have a special addition.';return}const country=available[Math.floor(Math.random()*available.length)];specialAwards.push({title,country});$('awardStatus').textContent=`🏆 ${title}: ${flagFor(country)} ${country}`;floatReaction(title.includes('Fan Vote')?'📣':'🏆');revealSound();commentary(`${title} goes to ${country}!`);render();saveDraft()}
+
+// Fan Voting
+function voteCandidates(page){
+  if(page.source==='group') return (groups[page.group]?.current||[]).filter(Boolean);
+  return [...new Set((activeField.length?activeField:parseCountries()).filter(Boolean))];
+}
+function randomVoteResults(candidates){
+  if(!candidates.length)return [];
+  const weights=candidates.map(()=>Math.max(.01,-Math.log(Math.random())));
+  const total=weights.reduce((a,b)=>a+b,0);
+  let vals=weights.map(w=>w/total*100);
+  vals=vals.map(v=>Math.round(v*100)/100);
+  const diff=Math.round((100-vals.reduce((a,b)=>a+b,0))*100)/100;
+  vals[vals.length-1]=Math.max(0,Math.round((vals[vals.length-1]+diff)*100)/100);
+  return candidates.map((country,i)=>({country,pct:vals[i]})).sort((a,b)=>b.pct-a.pct);
+}
+function updateVotingPage(page){page.results=randomVoteResults(voteCandidates(page));page.updatedAt=new Date().toISOString();localStorage.setItem('rp_fan_voting_pages',JSON.stringify(fanVotingPages));renderVotingPages();saveDraft();}
+function advanceOptions(current){return [40,30,25,20,15,12,10,6,5,3].filter(n=>n<=Math.max(current,1)).map(n=>({v:String(n),t:'Top '+n}));}
+function renderVotingPages(){
+ const box=$('votePages');if(!box)return;
+ if(!fanVotingPages.length){box.innerHTML='<div class="saved-note">No voting pages yet. Tap ➕ Create Voting Page.</div>';return;}
+ box.innerHTML=fanVotingPages.map((p,i)=>{
+   const candidates=voteCandidates(p); const opts=advanceOptions(candidates.length).map(o=>`<option value="${o.v}" ${String(p.advanceTo)===o.v?'selected':''}>${o.t}</option>`).join('');
+   const groupOpts=Object.keys(groups).map(g=>`<option value="${escapeHtml(g)}" ${p.group===g?'selected':''}>🌎 ${escapeHtml(g)}</option>`).join('');
+   const rows=(p.results||[]).map((r,j)=>`<div class="vote-row"><b>${j+1}</b><span>${flagFor(r.country)} ${escapeHtml(r.country)} <div class="vote-bar"><div class="vote-fill" style="width:${Math.max(0,Math.min(100,r.pct))}%"></div></div></span><strong>${r.pct.toFixed(2)}%</strong></div>`).join('');
+   return `<div class="vote-card"><h3>📣 ${escapeHtml(p.name)} ${p.advanceTo?`<span class="vote-badge">→ Top ${escapeHtml(p.advanceTo)}</span>`:''}</h3>
+    <div class="vote-settings"><select data-vote-source="${i}"><option value="all" ${p.source==='all'?'selected':''}>🌎 All Main Contestants</option><option value="group" ${p.source==='group'?'selected':''}>🌏 Group / Continental</option></select>${p.source==='group'?`<select data-vote-group="${i}"><option value="">Choose Group</option>${groupOpts}</select>`:''}<select data-vote-advance="${i}"><option value="">No automatic advancement</option>${opts}</select></div>
+    <div class="vote-actions"><button class="secondary update-vote" data-i="${i}">🔄 Update Voting</button><button class="secondary rename-vote" data-i="${i}">✏️ Rename</button><button class="secondary public-vote-link" data-i="${i}">🌐 Public Voting</button><button class="danger delete-vote" data-i="${i}">🗑️ Delete</button></div>
+    <div class="vote-results">${rows||'No contestants available for this voting page yet.'}</div></div>`;
+ }).join('');
+ box.querySelectorAll('.update-vote').forEach(b=>b.onclick=()=>updateVotingPage(fanVotingPages[+b.dataset.i]));
+ box.querySelectorAll('.rename-vote').forEach(b=>b.onclick=()=>{const p=fanVotingPages[+b.dataset.i],n=prompt('Rename voting page:',p.name);if(n&&n.trim()){p.name=n.trim();localStorage.setItem('rp_fan_voting_pages',JSON.stringify(fanVotingPages));renderVotingPages();saveDraft()}});
+ box.querySelectorAll('.delete-vote').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(confirm(`Delete voting page “${fanVotingPages[i].name}”?`)){fanVotingPages.splice(i,1);localStorage.setItem('rp_fan_voting_pages',JSON.stringify(fanVotingPages));renderVotingPages();saveDraft()}});
+ box.querySelectorAll('[data-vote-source]').forEach(el=>el.onchange=()=>{const p=fanVotingPages[+el.dataset.voteSource];p.source=el.value;if(p.source==='group'&&!groups[p.group])p.group=Object.keys(groups)[0]||'';updateVotingPage(p)});
+ box.querySelectorAll('[data-vote-group]').forEach(el=>el.onchange=()=>{const p=fanVotingPages[+el.dataset.voteGroup];p.group=el.value;updateVotingPage(p)});
+ box.querySelectorAll('[data-vote-advance]').forEach(el=>el.onchange=()=>{const p=fanVotingPages[+el.dataset.voteAdvance];p.advanceTo=el.value;localStorage.setItem('rp_fan_voting_pages',JSON.stringify(fanVotingPages));renderVotingPages();saveDraft()});
+ box.querySelectorAll('.public-vote-link').forEach(b=>b.onclick=()=>{const p=fanVotingPages[+b.dataset.i];p.publicId=p.publicId||('vote_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7));localStorage.setItem('rp_fan_voting_pages',JSON.stringify(fanVotingPages));if(location.protocol==='file:'){alert('🌐 Public Voting requires the simulator to be hosted online (HTTPS). After hosting, this button will create a shareable voting URL.');return}const url=location.href.split('?')[0]+'?vote='+encodeURIComponent(p.publicId);prompt('Share this public voting page URL:',url)});
+}
+$('createVotingPageBtn').onclick=()=>{const name=prompt('Voting page name:',`People's Choice ${fanVotingPages.length+1}`);if(!name||!name.trim())return;let source=confirm('Use a Group / Continental group for this voting page?\n\nOK = Group\nCancel = All Main Contestants');let group='';if(source){const names=Object.keys(groups);if(!names.length)return alert('Create a group first.');group=prompt('Enter the group name exactly:\n\n'+names.join('\n'),names[0]);if(!group||!groups[group])return alert('Group not found.');}const p={name:name.trim(),source:source?'group':'all',group,advanceTo:'',results:[]};p.results=randomVoteResults(voteCandidates(p));fanVotingPages.push(p);localStorage.setItem('rp_fan_voting_pages',JSON.stringify(fanVotingPages));renderVotingPages();saveDraft()};
+function fanVoteWinnerFor(target, groupName=''){
+ const eligible=new Set(groupName?(groups[groupName]?.current||[]):activeField);
+ const winners=[];
+ fanVotingPages.filter(p=>String(p.advanceTo)===String(target)&&(groupName?p.source==='group'&&p.group===groupName:p.source==='all')).forEach(p=>{for(const r of (p.results||[])){if(eligible.has(r.country)&&!winners.includes(r.country)){winners.push(r.country);break}}});
+ return winners;
+}
+function reserveFanWinners(field,target,groupName=''){
+ const winners=fanVoteWinnerFor(target,groupName).filter(c=>field.includes(c));
+ if(!winners.length)return {reserved:[],rest:[...field]};
+ const rest=field.filter(c=>!winners.includes(c));
+ return {reserved:winners.slice(0,Math.max(0,target-1)),rest};
+}
+
+// Group / Continental cuts: each group has its own current delegate field. The user chooses when and how to cut it.
+function renderGroups(){const box=$('groupList'),entries=Object.entries(groups);if(!entries.length){box.innerHTML='<div class="group-status">No groups yet. Add a group and manually paste delegates into it.</div>';return}box.innerHTML=entries.map(([name,g])=>{const h=groupHistory[name]||[];const opts=[40,30,25,20,15,12,10,6,5,3].filter(n=>n<=g.current.length).map(n=>`<option value="${n}">Top ${n}</option>`).join('');return `<div class="group-card"><h3>🌎 ${escapeHtml(name)} <small>(${g.current.length} current)</small></h3><div class="group-countries">${g.current.map(c=>flagFor(c)+' '+c).join('\n')||'No delegates'}</div><div class="group-actions"><button class="secondary" onclick="editGroup('${encodeURIComponent(name)}')">✏️ Edit</button><select id="cut_${encodeURIComponent(name)}" style="flex:1;min-width:120px"><option value="">Choose Cut</option>${opts}</select><button class="secondary" onclick="cutGroup('${encodeURIComponent(name)}')">🎯 Run Cut</button><button class="secondary" onclick="removeGroup('${encodeURIComponent(name)}')">🗑️ Remove</button></div>${h.length?'<div class="group-status">Completed cuts: '+h.map(x=>x.label+' ('+x.results.length+')').join(' → ')+'</div>':''}</div>`}).join('')}
+function saveGroups(){localStorage.setItem('rp_groups',JSON.stringify(groups));localStorage.setItem('rp_group_history',JSON.stringify(groupHistory));saveDraft()}
+window.editGroup=function(encoded){const name=decodeURIComponent(encoded),g=groups[name];if(!g)return;const val=prompt(`Edit delegates for ${name}. Put one per line, comma-separated, or semicolon-separated.`,g.current.join('\n'));if(val===null)return;const arr=[...new Set(val.split(/[\n,;|]+/).map(x=>x.trim()).filter(Boolean))];const other=Object.entries(groups).filter(([n])=>n!==name).flatMap(([,x])=>x.current);const dup=arr.filter(x=>other.includes(x));if(dup.length)alert('⚠️ Warning: these delegates are also in another group: '+dup.join(', ')+'. They were kept.');g.current=arr;saveGroups();renderGroups();$('groupStatus').textContent=`${name} updated.`}
+window.removeGroup=function(encoded){const name=decodeURIComponent(encoded);if(!confirm(`Remove the group “${name}”? Its group history will also be removed, but the main simulator field will not be changed.`))return;delete groups[name];delete groupHistory[name];saveGroups();renderGroups();$('groupStatus').textContent=`${name} removed.`}
+function announceGroupCut(name,survivors,n){
+  groupAnnouncementBusy=true;
+  const reveal=$('reveal'),announce=$('reveal').querySelector('.announce');
+  let i=0;
+  reveal.classList.remove('celebrate');
+  const step=()=>{
+    if(i>=survivors.length){
+      groupAnnouncementBusy=false;
+      groups[name].current=[...survivors];
+      groupHistory[name]??=[];groupHistory[name].push({label:'Top '+n,results:[...survivors]});
+      saveGroups();saveDraft();renderGroups();
+      $('groupStatus').textContent=`🎉 ${name} completed Top ${n}. The group results were announced on the main reveal screen.`;
+      announce.textContent='🌎 GROUP / CONTINENTAL CUT COMPLETE!';$('picked').textContent=`${survivors.length} ${name} qualifiers`;
+      $('round').textContent=`${name} • Top ${n}`;commentary(`${name} has completed its Top ${n} cut!`);return;
+    }
+    const country=survivors[i++];
+    announce.textContent=`🌎 ${name} — TOP ${n}`;$('picked').textContent=country;$('round').textContent=`${name} • Qualifier ${i} of ${survivors.length}`;
+    $('status').textContent=`🌎 ${name}: ${country} has been announced!`;handleRevealReaction(country,i===survivors.length);revealSound();
+    setTimeout(step,900);
+  };
+  step();
+}
+window.cutGroup=function(encoded){
+  if(groupAnnouncementBusy)return alert('Please wait for the current group announcements to finish.');
+  const name=decodeURIComponent(encoded),g=groups[name];
+  if(!g||!g.current.length)return alert('Add delegates to this group first.');
+  const sel=document.getElementById('cut_'+encodeURIComponent(name));const n=Number(sel&&sel.value);
+  if(!n)return alert('Choose a Top X from the group cut menu first.');
+  if(n>g.current.length)return alert('That cut is larger than the current group field.');
+  const guaranteed=fanVoteWinnerFor(n,name); const guaranteedUnique=[]; guaranteed.forEach(c=>{if(g.current.includes(c)&&!guaranteedUnique.includes(c))guaranteedUnique.push(c)}); const rest=g.current.filter(c=>!guaranteedUnique.includes(c)).sort(()=>Math.random()-.5); const survivors=[...guaranteedUnique,...rest].slice(0,n); if(guaranteedUnique.length){commentary(`${guaranteedUnique.map(c=>c+' (Fan Vote)').join(', ')} automatically advanced in ${name} Top ${n}.`)} announceGroupCut(name,survivors,n);floatReaction('🌎');
+}
+
+$('addGroupBtn').onclick=()=>{const name=prompt('Name this group/continent (e.g. Asia, Europe, Americas, Group A):');if(!name||!name.trim())return;const clean=name.trim();if(groups[clean])return alert('That group already exists.');const val=prompt(`Add delegates for ${clean}. One per line, comma-separated, or semicolon-separated:`,'');const arr=val?[...new Set(val.split(/[\n,;|]+/).map(x=>x.trim()).filter(Boolean))]:[];const other=Object.values(groups).flatMap(g=>g.current);const dup=arr.filter(x=>other.includes(x));if(dup.length)alert('⚠️ Warning: '+dup.join(', ')+` already appear in another group. They will still be kept in ${clean}.`);groups[clean]={current:arr};groupHistory[clean]=[];saveGroups();renderGroups()};
+$('mergeGroupsBtn').onclick=()=>{const merged=[...new Set(Object.values(groups).flatMap(g=>g.current))];if(!merged.length)return alert('No group survivors to merge.');activeField=merged;pool=[...activeField];results=[];finished=false;targetCount=Math.min(getTarget(),pool.length);$('round').textContent=`Merged field: ${pool.length} delegates from all current groups.`;$('status').textContent='🔗 Groups merged. The next cuts now use the merged field.';render();floatReaction('🔗');commentary(`${merged.length} delegates are now merged for the next cut!`);saveDraft()};
+
+// Persistent draft progress: official editions are still saved only after Winner, but an unfinished simulation can be resumed after closing the page.
+let draftKey='rp_active_draft_v6';
+let groupAnnouncementBusy=false;
+function saveDraft(){
+  try{
+    const draft={countries:$('countries').value,target:$('target').value,activeField:[...activeField],pool:[...pool],results:[...results],stage,finished,fanFavorite,specialAwards:[...specialAwards],groups:JSON.parse(JSON.stringify(groups)),groupHistory:JSON.parse(JSON.stringify(groupHistory)),fanVotingPages:JSON.parse(JSON.stringify(fanVotingPages)),completedEdition,__editionHistory:JSON.parse(JSON.stringify(__editionHistory)),__placements:JSON.parse(JSON.stringify(__placements)),currentPageant,updatedAt:new Date().toISOString()};
+    localStorage.setItem(draftKey,JSON.stringify(draft));
+    const ds=$('draftStatus'); if(ds) ds.textContent='💾 Draft saved automatically — '+new Date().toLocaleTimeString();
+    scheduleCloudSync();
+  }catch(e){}
+}
+function clearDraft(){localStorage.removeItem(draftKey);const ds=$('draftStatus');if(ds)ds.textContent='Draft progress is saved automatically in this browser.';scheduleCloudSync()}
+function restoreDraft(askUser=true){
+  try{const raw=localStorage.getItem(draftKey);if(!raw)return false;const d=JSON.parse(raw);
+    if(!d||!Array.isArray(d.activeField)||!d.activeField.length)return false;
+    if(askUser&&!confirm('Resume your unfinished pageant progress from this browser?\n\nChoose Cancel to start a new simulation.')){clearDraft();return false}
+    $('countries').value=d.countries||'';$('target').value=d.target||'40';activeField=d.activeField||[];pool=d.pool||[];results=d.results||[];stage=d.stage||0;finished=!!d.finished;fanFavorite=d.fanFavorite||'';specialAwards=d.specialAwards||[];groups=d.groups||{};groupHistory=d.groupHistory||{};fanVotingPages=d.fanVotingPages||[];localStorage.setItem('rp_fan_voting_pages',JSON.stringify(fanVotingPages));completedEdition=!!d.completedEdition;__editionHistory=d.__editionHistory||[];__placements=d.__placements||[];if(d.currentPageant)currentPageant=d.currentPageant;
+    $('saveEditionBtn').disabled=!completedEdition;$('saveStatus').textContent=completedEdition?'🎉 Edition complete! You can now save this edition.':'Complete the Winner stage before saving an edition.';
+    render();renderGroups();renderVotingPages();return true;
+  }catch(e){return false}
+}
+function updateSaveSetOptions(){const sel=$('savePageantSelect');if(!sel)return;const names=Object.keys(pageants);sel.innerHTML='<option value="">Choose pageant set…</option>'+names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');if(currentPageant&&names.includes(currentPageant))sel.value=currentPageant}
+function chooseSaveSet(){const sel=$('savePageantSelect');if(sel&&sel.value){currentPageant=sel.value;localStorage.setItem('rp_current_pageant',currentPageant);$('status').textContent=`💾 Completed edition will be saved to ${currentPageant}.`;saveDraft()}}
+
+// Pageant sets / saved editions
+function ordinal(n){const s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0])+' Edition'}
+function ensurePageant(){if(!currentPageant){const names=Object.keys(pageants);if(names.length)currentPageant=names[0]}if(currentPageant)localStorage.setItem('rp_current_pageant',currentPageant);updateSaveSetOptions()}
+function renderPageants(){
+  const box=$('pageantList'),names=Object.keys(pageants);
+  if(!names.length){box.innerHTML='<div class="saved-note">No pageant sets yet.</div>';return}
+  box.innerHTML=names.map(name=>{
+    const p=pageants[name];
+    return `<div class="pageant-item"><strong>👑 ${escapeHtml(name)}</strong><div class="saved-note">${p.editions.length} saved edition(s)</div>${p.editions.map((e,i)=>`<div class="edition-item" data-pageant="${encodeURIComponent(name)}" data-index="${i}"><span>${escapeHtml(e.name||ordinal(i+1))} — ${e.winner?flagFor(e.winner)+' '+escapeHtml(e.winner):'Completed'}</span><span class="edition-actions"><button class="secondary open-edition" data-pageant="${encodeURIComponent(name)}" data-index="${i}">Open</button><button class="secondary rename-edition" data-pageant="${encodeURIComponent(name)}" data-index="${i}">Rename</button><button class="danger delete-edition" data-pageant="${encodeURIComponent(name)}" data-index="${i}">🗑️ Delete</button></span></div>`).join('')}</div>`
+  }).join('');
+  box.querySelectorAll('.open-edition').forEach(el=>el.onclick=e=>{e.stopPropagation();viewEdition(decodeURIComponent(el.dataset.pageant),Number(el.dataset.index))});
+  box.querySelectorAll('.rename-edition').forEach(el=>el.onclick=e=>{e.stopPropagation();renameEdition(decodeURIComponent(el.dataset.pageant),Number(el.dataset.index))});
+  box.querySelectorAll('.delete-edition').forEach(el=>el.onclick=e=>{e.stopPropagation();deleteEdition(decodeURIComponent(el.dataset.pageant),Number(el.dataset.index))});
+}
+function renameEdition(pageantName,index){
+  const p=pageants[pageantName],e=p?.editions?.[index];if(!e)return;
+  const next=prompt(`Rename ${e.name||ordinal(index+1)}:`,e.name||ordinal(index+1));
+  if(next===null)return;const clean=next.trim();if(!clean)return;
+  if(p.editions.some((x,i)=>i!==index && String(x.name).toLowerCase()===clean.toLowerCase()))return alert('An edition with that name already exists in this pageant set.');
+  e.name=clean;localStorage.setItem('rp_pageants',JSON.stringify(pageants));renderPageants();renderHOF();scheduleCloudSync();
+}
+function deleteEdition(pageantName,index){
+  const p=pageants[pageantName],e=p?.editions?.[index];if(!e)return;
+  const label=e.name||ordinal(index+1);
+  if(!confirm(`⚠️ Delete ${label}?\n\nThis will permanently remove this saved edition and its Hall of Fame record.`))return;
+  p.editions.splice(index,1);
+  // Keep remaining edition names as explicitly saved; only remove the deleted edition.
+  pageants[pageantName]=p;localStorage.setItem('rp_pageants',JSON.stringify(pageants));
+  if(currentPageant===pageantName)localStorage.setItem('rp_current_pageant',currentPageant);
+  renderPageants();renderHOF();updateSaveSetOptions();scheduleCloudSync();
+  $('status').textContent=`🗑️ ${label} deleted from ${pageantName}.`;
+}
+
+function renderHOF(){const box=$('hallOfFame'),names=Object.keys(pageants);if(!names.length){box.textContent='Create and save a completed edition to see its history here.';return}box.innerHTML=names.map(name=>{const p=pageants[name];return `<div class="saved-note" style="margin-top:12px"><strong style="color:#ffd873">👑 ${escapeHtml(name)}</strong></div>`+p.editions.map(e=>{const gh=e.groupHistory||{};const groupRows=Object.entries(gh).flatMap(([g,hist])=>hist.map(x=>`<tr><th>🌎 ${escapeHtml(g)} — ${escapeHtml(x.label)}</th><td>${x.countries.map(c=>flagFor(c)+' '+escapeHtml(c)).join(', ')}</td></tr>`));return `<div class="pageant-item"><strong>${escapeHtml(e.name)}</strong><table class="hof-table"><tbody>${e.history.map(h=>`<tr><th>${escapeHtml(h.label)}</th><td>${h.countries.map(c=>flagFor(c)+' '+escapeHtml(c)).join(', ')}</td></tr>`).join('')}${groupRows.join('')}${e.placements.length?`<tr><th>FINAL PLACEMENTS</th><td>${e.placements.map(x=>escapeHtml(x.label)+': '+flagFor(x.country)+' '+escapeHtml(x.country)).join('<br>')}</td></tr>`:''}${e.fanVotingPages?.length?`<tr><th>📣 FAN VOTING</th><td>${e.fanVotingPages.map(v=>escapeHtml(v.name)+' — '+(v.results?.[0]?flagFor(v.results[0].country)+' '+escapeHtml(v.results[0].country)+' ('+v.results[0].pct.toFixed(2)+'%)':'No result')).join('<br>')}</td></tr>`:''}</tbody></table></div>`}).join('')}).join('')}
+function saveCompletedEdition(){
+  if(!completedEdition)return alert('Finish the Winner stage first.');
+  updateSaveSetOptions();
+  const selected=$('savePageantSelect')?.value||currentPageant;
+  if(!selected){
+    const choice=prompt('Which pageant set should this completed edition be saved to? Enter an existing set name, or Cancel to create one.');
+    if(choice===null)return;
+    const clean=choice.trim();
+    if(!clean)return;
+    if(!pageants[clean]){if(!confirm(`“${clean}” does not exist. Create this pageant set?`))return;pageants[clean]={editions:[]}}
+    currentPageant=clean;
+  }else currentPageant=selected;
+  localStorage.setItem('rp_current_pageant',currentPageant);
+  const p=pageants[currentPageant]||(pageants[currentPageant]={editions:[]});
+  const idx=p.editions.length+1,defaultName=ordinal(idx),name=prompt(`Save this completed edition to “${currentPageant}”.
+
+Edition name:`,defaultName);
+  if(name===null)return;
+  const finalName=name.trim()||defaultName;
+  const winner=__placements.find(x=>x.label==='Winner')?.country||null;
+  p.editions.push({name:finalName,winner,history:__editionHistory,placements:__placements,groups:JSON.parse(JSON.stringify(groups)),groupHistory:JSON.parse(JSON.stringify(groupHistory)),fanVotingPages:JSON.parse(JSON.stringify(fanVotingPages)),savedAt:new Date().toISOString()});
+  pageants[currentPageant]=p;
+  localStorage.setItem('rp_pageants',JSON.stringify(pageants));
+  clearDraft();scheduleCloudSync();renderPageants();renderHOF();updateSaveSetOptions();$('saveEditionBtn').disabled=true;$('saveStatus').textContent=`✅ Saved as ${finalName} in ${currentPageant}.`;floatReaction('💾');
+}
+
+function createPageantSet(){const input=$('newPageantName').value.trim(),name=input||prompt('Pageant set name:');if(!name||!name.trim())return;const clean=name.trim();if(pageants[clean])return alert('A pageant set with that name already exists.');pageants[clean]={editions:[]};currentPageant=clean;localStorage.setItem('rp_pageants',JSON.stringify(pageants));localStorage.setItem('rp_current_pageant',currentPageant);scheduleCloudSync();$('newPageantName').value='';renderPageants();renderHOF();updateSaveSetOptions();$('savePageantSelect').value=clean;$('status').textContent=`👑 ${clean} created. Finish this simulation to save its first edition.`}
+function viewEdition(pageantName,index){const e=pageants[pageantName]?.editions[index];if(!e)return;let text=`👑 ${pageantName} — ${e.name}\n\n`;for(const h of e.history)text+=`${h.label}\n${h.countries.join(', ')}\n\n`;if(e.placements.length)text+='FINAL PLACEMENTS\n'+e.placements.map(x=>x.label+': '+x.country).join('\n');alert(text)}
+
+$('pick').onclick=()=>{if(finished)resetStage();pickNext();saveDraft()};
+$('reset').onclick=()=>{clearTimeout(timer);timer=null;setup(true);clearDraft();$('reveal').classList.remove('suspense','celebrate');$('nearMiss').textContent='';$('tickerText').textContent='🎙️ New simulation started — the next reveal is coming up...';saveDraft()};
+$('normalMode').onclick=()=>setMode('normal');$('gaspMode').onclick=()=>setMode('gasp');
+document.querySelectorAll('.reaction').forEach(b=>b.onclick=()=>{floatReaction(b.dataset.reaction);tone(520,.1);$('tickerText').textContent=`${b.dataset.reaction} reaction!`});
+$('fanBtn').onclick=()=>{const a=[...activeField];if(!a.length)return $('status').textContent='Run a stage first before selecting a Fan Favorite.';fanFavorite=a[Math.floor(Math.random()*a.length)];$('fanFavorite').innerHTML=`${flagFor(fanFavorite)} ${escapeHtml(fanFavorite)} <span class="fan-badge">⭐ FAN FAVORITE</span>`;render();saveDraft()};
+$('emailAccountBtn').onclick=emailAccount;
+$('logoutAccountBtn').onclick=logoutAccount;
+$('firebaseConfigBtn').onclick=configureFirebase;
+$('fanVoteBtn').onclick=()=>addSpecialAward('Fan Vote');$('specialAwardBtn').onclick=()=>addSpecialAward('Special Award');$('saveEditionBtn').onclick=saveCompletedEdition;$('createPageant').onclick=createPageantSet;$('menuBtn').onclick=()=>$('drawer').classList.add('open');$('drawerClose').onclick=()=>$('drawer').classList.remove('open');$('drawer').onclick=e=>{if(e.target===$('drawer'))$('drawer').classList.remove('open')};
+$('copyFinal').onclick=async()=>{const text=$('finalText').value.trim();if(!text)return $('status').textContent='There is no final list to copy yet.';try{await navigator.clipboard.writeText(text)}catch(e){$('finalText').select();document.execCommand('copy')}$('status').textContent='✅ Final list copied.'};
+$('toggleCounts').onclick=()=>{const box=$('counts'),visible=box.style.display==='grid';box.style.display=visible?'none':'grid';$('toggleCounts').textContent=visible?'🔢 Show Counts':'🔢 Hide Counts'};
+document.addEventListener('click',e=>{const chip=e.target.closest('.count-chip');if(!chip)return;const n=Number(chip.dataset.count);$('status').textContent=`${chip.textContent.trim()} — ${Math.min(n,activeField.length)} contestants currently in the eligible field.`});
+$('countries').addEventListener('input',()=>{clearTimeout(timer);timer=null;setup(true);saveDraft()});
+$('target').addEventListener('change',()=>{clearTimeout(timer);timer=null;results=[];finished=false;pool=[...activeField];targetCount=isPlacement($('target').value)?1:Math.min(getTarget(),pool.length);$('picked').textContent='—';$('reveal').classList.remove('suspense','celebrate');$('nearMiss').textContent='';$('reveal').querySelector('.announce').textContent=isPlacement($('target').value)?`🎖️ ${placementName($('target').value)} IS…`:'THE NEXT SEMIFINALIST IS…';$('round').textContent=pool.length?`Next stage: ${pool.length} eligible contestants`:'Enter countries to begin';render();saveDraft()});
+$('auto').addEventListener('change',()=>{if($('auto').checked&&!finished&&results.length===0&&pool.length)pickNext()});
+initFirebase();ensurePageant();renderPageants();renderHOF();renderVotingPages();updateSaveSetOptions();$('savePageantSelect').onchange=chooseSaveSet;$('saveNewSetBtn').onclick=()=>{const name=prompt('Create a new pageant set for this edition:');if(!name||!name.trim())return;const clean=name.trim();if(pageants[clean])return alert('That pageant set already exists.');pageants[clean]={editions:[]};currentPageant=clean;localStorage.setItem('rp_pageants',JSON.stringify(pageants));localStorage.setItem('rp_current_pageant',currentPageant);scheduleCloudSync();updateSaveSetOptions();$('savePageantSelect').value=clean;$('status').textContent=`💾 ${clean} selected as the save set.`;saveDraft()};const restored=restoreDraft(false);if(!restored){setup(true);renderGroups();saveDraft()}else{updateSaveSetOptions();renderGroups()}
+window.addEventListener('pagehide',saveDraft);window.addEventListener('beforeunload',saveDraft);
+</script>
+</body>
+</html>
